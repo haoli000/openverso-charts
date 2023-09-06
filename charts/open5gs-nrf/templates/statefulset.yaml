@@ -1,5 +1,5 @@
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "common.names.fullname" . }}
   namespace: {{ include "common.names.namespace" . | quote }}
@@ -11,12 +11,14 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  serviceName: nrf
   selector:
     matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app: nrf # has to match .spec.template.metadata.labels
   {{- if .Values.updateStrategy }}
   strategy: {{- toYaml .Values.updateStrategy | nindent 4 }}
   {{- end }}
+  replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels: {{- include "common.labels.standard" . | nindent 8 }}
@@ -26,12 +28,13 @@ spec:
         {{- if .Values.podLabels }}
         {{- include "common.tplvalues.render" (dict "value" .Values.podLabels "context" $) | nindent 8 }}
         {{- end }}
+        app: nrf # has to match .spec.selector.matchLabels
       annotations:
         {{- if .Values.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
         {{- end }}
     spec:
-      {{ include "open5gs.webui.imagePullSecrets" . | indent 6 }}
+      {{- include "open5gs.nrf.imagePullSecrets" . | nindent 6 }}
       {{- if .Values.podSecurityContext.enabled }}
       securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
       {{- end }}
@@ -43,7 +46,7 @@ spec:
         podAntiAffinity: {{- include "common.affinities.pods" (dict "type" .Values.podAntiAffinityPreset "context" $) | nindent 10 }}
         nodeAffinity: {{- include "common.affinities.nodes" (dict "type" .Values.nodeAffinityPreset.type "key" .Values.nodeAffinityPreset.key "values" .Values.nodeAffinityPreset.values) | nindent 10 }}
       {{- end }}
-      serviceAccountName: {{ include "open5gs.webui.serviceAccountName" . }}
+      serviceAccountName: {{ include "open5gs.nrf.serviceAccountName" . }}
       {{- if .Values.schedulerName }}
       schedulerName: {{ .Values.schedulerName }}
       {{- end }}
@@ -62,47 +65,28 @@ spec:
       hostAliases: {{- include "common.tplvalues.render" (dict "value" .Values.hostAliases "context" $) | nindent 8 }}
       # yamllint enable rule:indentation
       {{- end }}
+      {{- if .Values.initContainers }}
       initContainers:
-        - name: init
-          image: bitnami/mongodb:5.0.10-debian-11-r7
-          env:
-          - name: DB_URI
-            {{- if .Values.dbURI }}
-            value: {{ .Values.dbURI }}
-            {{- else  }}
-            value: {{ printf "mongodb://%s/open5gs" (include "common.names.dependency.fullname" (dict "chartName" "mongodb" "chartValues"  .Values.mongodb "context" $)) }}
-            {{- end }}
-          command: 
-            - /bin/bash
-            - /add_admin.sh
-          volumeMounts:
-          - name: populate
-            mountPath: /add_admin.sh
-            subPath: add_admin.sh
-        {{- if .Values.initContainers }} 
         {{- include "common.tplvalues.render" (dict "value" .Values.initContainers "context" $) | nindent 8 }}
         {{- end }}
       containers:
         - name: {{ include "common.names.fullname" . }}
-          image: {{ template "open5gs.webui.image" . }}
+          image: {{ template "open5gs.nrf.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
           {{- if .Values.command }}
           command: {{- include "common.tplvalues.render" (dict "value" .Values.command "context" $) | nindent 12 }}
           {{- end }}
           {{- if .Values.args }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.args "context" $) | nindent 12 }}
+          {{- else }}
+          args:
+            - "open5gs-nrfd"
           {{- end }}
           {{- if .Values.containerSecurityContext.enabled }}
           securityContext: {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 12 }}
           {{- end }}
+          {{- if .Values.extraEnvVars }}
           env:
-            - name: DB_URI
-              {{- if .Values.dbURI }}
-              value: {{ .Values.dbURI }}
-              {{- else  }}
-              value: {{ printf "mongodb://%s/open5gs" (include "common.names.dependency.fullname" (dict "chartName" "mongodb" "chartValues"  .Values.mongodb "context" $)) }}
-              {{- end }}
-            {{- if .Values.extraEnvVars }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
             {{- end }}
           envFrom:
@@ -118,13 +102,13 @@ spec:
           lifecycle: {{- include "common.tplvalues.render" (dict "value" .Values.lifecycleHooks "context" $) | nindent 12 }}
           {{- end }}
           ports:
-            - name: http
-              containerPort: {{ .Values.containerPorts.http }}
+            - name: sbi
+              containerPort: {{ .Values.containerPorts.sbi }}
           {{- if .Values.startupProbe.enabled }}
           startupProbe:
           # Using tcpSocket instead of httpGet because open5gs only support HTTP/2
             tcpSocket:
-              port: http
+              port: sbi
             initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.startupProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds }}
@@ -137,7 +121,7 @@ spec:
           livenessProbe:
           # Using tcpSocket instead of httpGet because open5gs only support HTTP/2
             tcpSocket:
-              port: http
+              port: sbi
             initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
@@ -150,7 +134,7 @@ spec:
           readinessProbe:
           # Using tcpSocket instead of httpGet because open5gs only support HTTP/2
             tcpSocket:
-              port: http
+              port: sbi
             initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
             periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
             timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
@@ -163,8 +147,9 @@ spec:
           resources: {{- toYaml .Values.resources | nindent 12 }}
           {{- end }}
           volumeMounts:
-            - name: populate
-              mountPath:  /opt/open5gs/etc/open5gs/
+            - name: config
+              mountPath:  /opt/open5gs/etc/open5gs/nrf.yaml
+              subPath: "nrf.yaml"
             {{- if .Values.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
@@ -172,9 +157,13 @@ spec:
         {{- include "common.tplvalues.render" (dict "value" .Values.sidecars "context" $) | nindent 8 }}
         {{- end }}
       volumes:
-        - name: populate
+        - name: config
           configMap:
             name: {{ include "common.names.fullname" . }}
         {{- if .Values.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
         {{- end }}
+      hostAliases:
+        - ip: "0.0.0.0"
+          hostnames:
+          - nrf.5gc.mnc0{{ .Values.global.mnc }}.mcc{{ .Values.global.mcc }}.3gppnetwork.org

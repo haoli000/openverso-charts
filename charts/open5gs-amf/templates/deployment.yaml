@@ -150,8 +150,7 @@ spec:
           {{- end }}
           volumeMounts:
             - name: config
-              mountPath:  /opt/open5gs/etc/open5gs/amf.yaml
-              subPath: "amf.yaml"
+              mountPath:  /opt/open5gs/etc/open5gs/
             {{- if .Values.extraVolumeMounts }}
             {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}

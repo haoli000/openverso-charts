@@ -19,13 +19,15 @@ mongodb:
   auth:
     enabled: false
 smf:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 upf:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 webui:
   enabled: true
   image:
@@ -33,70 +35,91 @@ webui:
 
 # 4G
 hss:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
   mongodb:
     enabled: false
 mme:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 pcrf:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
   mongodb:
     enabled: false
 sgwc:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 sgwu:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 
 # 5G
 amf:
   enabled: true
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 ausf:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 bsf:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 nrf:
   enabled: true
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 nssf:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 pcf:
-  enabled: true
+  enabled: false
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
   mongodb:
     enabled: false
 udm:
   enabled: true
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
 udr:
   enabled: true
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
   mongodb:
     enabled: false
 scp:
-  enabled: false
+  enabled: true
   image:
-    tag: 2.6.4
+    repository: haoli1/open5gs-roaming
+    tag: latest
+  mongodb:
+    enabled: false
+sepp:
+  enabled: true
+  image:
+    repository: haoli1/open5gs-roaming
+    tag: latest
   mongodb:
     enabled: false

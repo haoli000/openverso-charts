@@ -162,7 +162,7 @@ serviceAccount:
 ## @param containerPorts [object] Container ports
 ##
 containerPorts:
-  sbi: 7777
+  sbi: 80
 ## @param sessionAffinity Control where client requests go, to the same pod or round-robin. Values: ClientIP or None
 ## ref: https://kubernetes.io/docs/user-guide/services/
 ##
@@ -227,8 +227,13 @@ podSecurityContext:
 ##
 containerSecurityContext:
   enabled: true
-  runAsUser: 1001
-  runAsNonRoot: true
+  # runAsUser: 1001
+  runAsNonRoot: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - NET_BIND_SERVICE
 ## Configure extra options for startup probe
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
 ## @param startupProbe.enabled Enable startupProbe
@@ -310,7 +315,7 @@ services:
     ## @param service.ports.sbi Service HTTP port
     ##
     ports:
-      sbi: 7777
+      sbi: 80
     ## @param service.loadBalancerSourceRanges Restricts access for LoadBalancer (only with `service.type: LoadBalancer`)
     ## e.g:
     ## loadBalancerSourceRanges:
@@ -334,7 +339,7 @@ services:
     ## e.g.:
     ## clusterIP: None
     ##
-    clusterIP: ""
+    clusterIP: None
     ## @param service.extraPorts Extra ports to expose (normally used with the `sidecar` value)
     ##
     extraPorts: []

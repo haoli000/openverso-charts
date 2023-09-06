@@ -9,6 +9,9 @@ sbi:
     no_tls: {{ .Values.config.sbi.client.no_tls }}
 
 nrf:
+  serving:  # 5G roaming requires PLMN in NRF
+    - plmn_id:
+        mcc: {{ required "MCC is required" .Values.global.mcc }}
+        mnc: {{ required "MNC is required" .Values.global.mnc }}
   sbi:
-    - dev: "eth0"
-      port: {{ .Values.containerPorts.sbi }}
+    - address: nrf.5gc.mnc0{{ .Values.global.mnc }}.mcc{{ .Values.global.mcc }}.3gppnetwork.org

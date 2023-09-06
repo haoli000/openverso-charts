@@ -74,6 +74,11 @@ dependencies:
     repository: file://../open5gs-scp
     condition: scp.enabled
     alias: scp
+  - name: open5gs-sepp
+    version: ~2.1.0
+    repository: file://../open5gs-sepp
+    condition: sepp.enabled
+    alias: sepp
   - name: open5gs-sgwc
     version: ~2.1.0
     repository: file://../open5gs-sgwc

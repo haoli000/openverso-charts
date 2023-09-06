@@ -1,5 +1,5 @@
 apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "common.names.fullname" . }}
   namespace: {{ include "common.names.namespace" . | quote }}
@@ -11,8 +11,10 @@ metadata:
   annotations: {{- include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 }}
   {{- end }}
 spec:
+  serviceName: udm
   selector:
     matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}
+      app: udm # has to match .spec.template.metadata.labels
   {{- if .Values.updateStrategy }}
   strategy: {{- toYaml .Values.updateStrategy | nindent 4 }}
   {{- end }}
@@ -26,6 +28,7 @@ spec:
         {{- if .Values.podLabels }}
         {{- include "common.tplvalues.render" (dict "value" .Values.podLabels "context" $) | nindent 8 }}
         {{- end }}
+        app: udm # has to match .spec.selector.matchLabels
       annotations:
         {{- if .Values.podAnnotations }}
         {{- include "common.tplvalues.render" (dict "value" .Values.podAnnotations "context" $) | nindent 8 }}
@@ -76,7 +79,7 @@ spec:
           {{- if .Values.args }}
           args: {{- include "common.tplvalues.render" (dict "value" .Values.args "context" $) | nindent 12 }}
           {{- else }}
-          args: 
+          args:
             - "open5gs-udmd"
           {{- end }}
           {{- if .Values.containerSecurityContext.enabled }}
@@ -160,3 +163,7 @@ spec:
         {{- if .Values.extraVolumes }}
         {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes "context" $) | nindent 8 }}
         {{- end }}
+      hostAliases:
+        - ip: "0.0.0.0"
+          hostnames:
+          - udm.5gc.mnc0{{ .Values.global.mnc }}.mcc{{ .Values.global.mcc }}.3gppnetwork.org

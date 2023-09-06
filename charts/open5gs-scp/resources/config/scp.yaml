@@ -10,13 +10,12 @@ sbi:
     no_tls: {{ .Values.config.sbi.client.no_tls }}
 
 scp:
+  defconfig:
+    tls:
+      client:
+        schema: http
   sbi:
     - dev: "eth0"
       port: {{ .Values.containerPorts.sbi }}
-
-{{- if .Values.config.nrf.enabled }}
-nrf:
-  sbi:
-    - name: {{ default (printf "%s-nrf-sbi" $open5gsName) .Values.config.nrf.sbi.hostname }}
-      port: {{ .Values.config.nrf.sbi.port }}
-{{- end }}
+  nrf:
+    - uri: http://{{ default (printf "%s-nrf-sbi" $open5gsName) .Values.config.nrf.sbi.hostname }}:{{ .Values.config.nrf.sbi.port }}
