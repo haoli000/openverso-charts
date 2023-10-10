@@ -13,13 +13,13 @@ helm install -n open5gs v . --set sepp.config.peer=h,global.mcc=240,global.mnc=0
 
 To fix DNS lookups, add the following to CoreDNS configmap, and restart the pods:
 ```
-rewrite continue {                                                                                                                                                                                          │
-  name regex (.*)\.5gc\.mnc002\.mcc250\.3gppnetwork\.org h-{1}-sbi.open5gs.svc.cluster.local                                                                                                                   │
-  answer name h-(.*)-sbi\.open5gs\.svc\.cluster\.local {1}.5gc.mnc002.mcc250.3gppnetwork.org                                                                                                                   │
-}                                                                                                                                                                                                           │
-rewrite stop {                                                                                                                                                                                              │
-  name regex (.*)\.5gc\.mnc001\.mcc240\.3gppnetwork\.org v-{1}-sbi.open5gs.svc.cluster.local                                                                                                               │
-  answer name v-(.*)-sbi\.open5gs\.svc\.cluster\.local {1}.5gc.mnc001.mcc240.3gppnetwork.org                                                                                                               │
+rewrite {
+  name regex (.*)\.5gc\.mnc002\.mcc250\.3gppnetwork\.org h-{1}-sbi.open5gs.svc.cluster.local
+  answer name h-(.*)-sbi\.open5gs\.svc\.cluster\.local {1}.5gc.mnc002.mcc250.3gppnetwork.org
+}
+rewrite {
+  name regex (.*)\.5gc\.mnc001\.mcc240\.3gppnetwork\.org v-{1}-sbi.open5gs.svc.cluster.local
+  answer name v-(.*)-sbi\.open5gs\.svc\.cluster\.local {1}.5gc.mnc001.mcc240.3gppnetwork.org
 }
 ```
 #
