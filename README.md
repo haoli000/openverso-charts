@@ -3,7 +3,7 @@ This repo is a branch of [Helm Charts Collection of Openverso Project](https://g
 
 ## Quick installation instructions
 ```bash
-git clone git@github.com:haoli000/openverso-charts.git
+git clone https://github.com/haoli000/openverso-charts.git
 cd openverso-charts/charts/open5gs
 helm dependency build
 kubectl create namespace open5gs
